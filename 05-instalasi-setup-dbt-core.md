@@ -21,12 +21,12 @@
 
 ## Prerequisites
 
-| Komponen         | Minimum Requirement        |
-|------------------|----------------------------|
-| **OS**           | Ubuntu 20.04+ / macOS / Windows |
-| **Python**       | 3.8+ (recommended 3.10+)  |
-| **pip**          | 21.0+                      |
-| **Git**          | 2.0+                       |
+| Komponen         | Minimum Requirement                                |
+|------------------|----------------------------------------------------|
+| **OS**           | Ubuntu 20.04+ / macOS / Windows                    |
+| **Python**       | 3.8+ (recommended 3.10+)                           |
+| **pip**          | 21.0+                                              |
+| **Git**          | 2.0+                                               |
 | **Data Warehouse** | Apache Doris / PostgreSQL / BigQuery / Snowflake |
 
 ### Install Python & pip
@@ -52,7 +52,7 @@ source ~/dbt-env/bin/activate
 
 
 ## Konsep DBT
-
+```
 ┌──────────────────────────────────────────────────────────────┐
 │                      DBT Workflow                            │
 │                                                              │
@@ -76,7 +76,7 @@ source ~/dbt-env/bin/activate
 │  │  • Macros (reusable SQL functions)                  │     │
 │  └─────────────────────────────────────────────────────┘     │
 └──────────────────────────────────────────────────────────────┘
-
+```
 ---
 
 ## Instalasi DBT Core
