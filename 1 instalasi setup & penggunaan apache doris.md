@@ -139,8 +139,8 @@ sys_log_level = INFO
 ### Start & Cek FE
 
 ```bash
-# Start FE
-./fe/bin/start_fe.sh --daemon
+# Start FE harus di direktori FE
+bin/start_fe.sh --daemon
 
 # Cek FE status via API
 curl http://localhost:8030/api/bootstrap
@@ -182,8 +182,8 @@ brpc_port = 8060
 ### Start BE
 
 ```bash
-# Start BE
-./be/bin/start_be.sh --daemon
+# Start BE harus didirektori BE
+bin/start_be.sh --daemon
 ```
 
 ---
@@ -248,7 +248,7 @@ ulimit -n
 ### 4. Jalankan Kembali Doris BE
 
 ```bash
-./be/bin/start_be.sh --daemon
+bin/start_be.sh --daemon
 
 # Cek dengan JPS untuk melihat keduanya sudah aktif
 jps
@@ -355,10 +355,10 @@ tail -100f fe/log/fe.log
 tail -100f be/log/be.INFO
 
 # Restart FE
-./fe/bin/stop_fe.sh && ./fe/bin/start_fe.sh --daemon
+bin/stop_fe.sh &&  bin/start_fe.sh --daemon
 
 # Restart BE
-./be/bin/stop_be.sh && ./be/bin/start_be.sh --daemon
+bin/stop_be.sh &&  bin/start_be.sh --daemon
 ```
 
 ---
