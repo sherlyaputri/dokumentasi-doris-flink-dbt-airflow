@@ -365,7 +365,7 @@ tail -100f be/log/be.INFO
 
 ## 📚 Referensi
 
-- [Apache Doris Official Documentation](https://doris.apache.org/docs/)
+- [Apache Doris Official Documentation](https://doris.apache.org)
 - [Apache Doris GitHub](https://github.com/apache/doris)
 
 ---
