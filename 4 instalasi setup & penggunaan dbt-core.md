@@ -144,12 +144,23 @@ Langkah ini menghubungkan dbt (alat transformasi) dengan Apache Doris (tempat pe
 # Buat project baru
 dbt init my_data_warehouse
 
-# Output interaktif:
+# Output Interaktif
+# Happy modeling!
+
+# 03:51:47  Setting up your profile.
 # Which database would you like to use?
 # [1] doris
-# [2] postgres
-# ...
+
+# (Don't see the one you want? https://docs.getdbt.com/docs/available-adapters)
+
 # Enter a number: 1
+# host (hostname for your instance(your doris fe host)): 192.168.4.100
+# port (port for your instance(your doris fe query_port)) [9030]: 9030
+# schema (the schema name as stored in the database,doris have not schema to make a collection of table or view) [dbt]: db_test
+# username (your doris username): your_username
+# password (your doris password, if no password, just Enter) []: your_password 
+# threads (1 or more) [1]: 1
+# 03:52:37  Profile my_data_warehouse written to /home/sherly/.dbt/profiles.yml using target's profile_template.yml and your supplied values. Run 'dbt debug' to validate the connection.
 
 # Masuk ke project
 cd my_data_warehouse
@@ -178,6 +189,7 @@ File `profiles.yml` berisi koneksi ke database. Lokasi default: `~/.dbt/profiles
 
 ```yaml
 # ~/.dbt/profiles.yml
+vim ~/.dbt/profiles.yml
 
 # ===========================
 # Profile untuk Apache Doris
@@ -208,7 +220,7 @@ dbt debug
 
 ---
 
-## Struktur Project DBT
+## Periksa Struktur Project DBT
 
 ### dbt_project.yml
 File ini adalah pusat pengaturan proyek. Di sini kita memberitahu dbt bagaimana cara memperlakukan model-model kamu secara umum.
@@ -342,6 +354,7 @@ vim orders.sql
 ```
 
 ### orders.sql
+Saat mengetik vim orders.sql dan mulai menulis query di dalamnya, disini kita sedang mendefinisikan bagaimana data mentah diubah menjadi data matang yang siap dianalisis.
 
 ```yaml
 # models/orders.sql
@@ -385,8 +398,11 @@ LEFT JOIN source_products p ON o.product_id = p.product_id
 {% endif %}
 
 ```
+---
 
 ## Runing DBT
+
+Setelah selesai menulis file orders.sql, file tersebut hanyalah sebuah teks biasa. Agar bisa menjadi tabel nyata di database (Apache Doris), kita perlu melakukan proses Running.
 
 ```bash
 # 1. Cek koneksi ke Doris (Wajib OK semua)
@@ -396,10 +412,10 @@ dbt debug
 dbt run
 
 # 3. Menjalankan model secara spesifik
-dbt run --select shipment.sql
+dbt run --select orders.sql
 
 # 4. Jalankan model spesifik & refresh total (hapus tabel lama, buat baru)
-dbt run --select shipment --full-refresh
+dbt run --select orders --full-refresh
 
 # 📄 Documentation
 dbt docs generate            # Generate documentation
@@ -408,7 +424,40 @@ dbt docs serve --port 8080   # Serve docs di browser
 
 ---
 
+## Cara Mengecek Hasil
+Setelah terminal menunjukkan pesan hijau OK, lakukan verifikasi manual untuk memastikan data benar-benar terbentuk.
+Berikut contoh output setelah dbt run
+```bash
+#Output dbt run orders.sql
+venv) sherly@k8s-master:~/dbt/my_doris_project/models$ dbt run --select AGBAL.sql 
+02:21:51  Running with dbt=1.8.0
+02:21:51  Registered adapter: doris=0.4.0
+02:21:52  Found 7 models, 4 data tests, 16 sources, 428 macros
+02:21:52  
+02:21:52  Concurrency: 1 threads (target='dev')
+02:21:52  
+02:21:52  1 of 1 START sql incremental model dbt.AGBAL ................................... [RUN]
+02:21:57  1 of 1 OK created sql incremental model dbt.AGBAL .............................. [2324657 rows affected in 4.73s]
+02:21:57  
+02:21:57  Finished running 1 incremental model in 0 hours 0 minutes and 4.90 seconds (4.90s).
+02:21:57  
+02:21:57  Completed successfully
+02:21:57  
+02:21:57  Done. PASS=1 WARN=0 ERROR=0 SKIP=0 TOTAL=1
+```
 
+### Lihat Data di Doris
+1. Masuk ke MySQL/Doris Client
+```bash 
+mysql -h 192.168.4.100 -P 9030 -u root
+```
+
+2. Cek Tabel
+```bash
+USE dbt;
+SHOW TABLES; -- Pastikan ada tabel 'orders'
+SELECT * FROM orders LIMIT 5; -- Lihat isinya
+```
 ---
 
 ## Troubleshooting
