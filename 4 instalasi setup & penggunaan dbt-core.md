@@ -421,6 +421,11 @@ dbt run --select orders --full-refresh
 dbt docs generate            # Generate documentation
 dbt docs serve --port 8080   # Serve docs di browser
 ```
+---
+## DBT Dore UI
+```bash
+🌐 http://localhost:8000
+```
 
 ---
 
