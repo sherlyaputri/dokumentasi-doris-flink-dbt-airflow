@@ -145,6 +145,9 @@ flink-1.18.0/
 ---
 
 ## Konfigurasi Flink ⚠️ Jika PERLU
+⚠️ **Jika menjalankan dilokal tidak perlu melakukan konfigurasi ini**
+
+⚠️ **Hanya seting agar port tidak bentrok dan menambahkan task slot**
 
 Edit file `conf/flink-conf.yaml`:
 
@@ -364,7 +367,3 @@ curl http://localhost:8081/overview
 - [Apache Flink GitHub](https://github.com/apache/flink)
 
 ---
-
-> 📝 **Author**: Data Engineering Team
-> 📅 **Last Updated**: 2026-02-11
-> 🏷️ **Tags**: `apache-flink`, `setup`, `instalasi`, `standalone`

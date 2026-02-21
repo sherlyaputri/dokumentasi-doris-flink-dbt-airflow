@@ -357,7 +357,3 @@ DESC nama_table;
 - [Apache Doris CTAS](https://doris.apache.org/docs/3.x/sql-manual/sql-statements/table-and-view/table/CREATE-TABLE)
 
 ---
-
-> 📝 **Author**: Data Engineering Team
-> 📅 **Last Updated**: 2026-02-11
-> 🏷️ **Tags**: `apache-doris`, `catalog`, `jdbc`, `migrasi`, `mariadb`, `mysql`

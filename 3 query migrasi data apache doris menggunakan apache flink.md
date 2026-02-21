@@ -949,6 +949,3 @@ ORDER BY category, stock DESC;
 
 ---
 
-> 📝 **Author**: Data Engineering Team
-> 📅 **Last Updated**: 2026-02-11
-> 🏷️ **Tags**: `apache-flink`, `jdbc`, `cdc`, `migrasi`, `mariadb`, `apache-doris`, `data-dummy`
