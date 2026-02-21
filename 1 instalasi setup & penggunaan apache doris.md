@@ -109,6 +109,7 @@ Edit file `fe/conf/fe.conf`:
 # ============================================
 
 # Priority Networks - SESUAIKAN dengan IP server kamu
+# Berikan # Jika menjalankan dilokal pada priority_networks
 priority_networks = 192.168.1.0/24
 
 # HTTP port untuk web UI
@@ -122,18 +123,6 @@ rpc_port = 9020
 
 # Edit log port (untuk replikasi FE)
 edit_log_port = 9010
-
-# JVM Memory Settings
-JAVA_OPTS="-Xmx8192m -XX:+UseMembar -XX:SurvivorRatio=8 \
-  -XX:MaxTenuringThreshold=7 -XX:+PrintGCDateStamps \
-  -XX:+PrintGCDetails -XX:+UseConcMarkSweepGC \
-  -XX:+UseParNewGC -XX:+CMSClassUnloadingEnabled \
-  -XX:-CMSParallelRemarkEnabled -XX:CMSInitiatingOccupancyFraction=80 \
-  -XX:SoftRefLRUPolicyMSPerMB=0"
-
-# Log Settings
-LOG_DIR = /opt/apache-doris/fe/log
-sys_log_level = INFO
 ```
 
 ### Start & Cek FE
@@ -164,6 +153,7 @@ Edit file `be/conf/be.conf`:
 # ============================================
 
 # Priority Networks - SESUAIKAN dengan IP server
+# Berikan # Jika menjalankan dilokal pada priority_networks
 priority_networks = 192.168.1.0/24
 
 # BE HTTP port
@@ -369,7 +359,3 @@ bin/stop_be.sh &&  bin/start_be.sh --daemon
 - [Apache Doris GitHub](https://github.com/apache/doris)
 
 ---
-
-> 📝 **Author**: Data Engineering Team
-> 📅 **Last Updated**: 2026-02-11
-> 🏷️ **Tags**: `apache-doris`, `olap`, `data-warehouse`, `analytics`
