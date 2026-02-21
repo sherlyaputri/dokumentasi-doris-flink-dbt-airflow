@@ -12,7 +12,6 @@
 - [Melihat & Mengelola Catalog](#melihat--mengelola-catalog)
 - [Query Data dari Catalog](#query-data-dari-catalog)
 - [Migrasi Data ke Internal Doris](#migrasi-data-ke-internal-doris)
-- [Tips & Best Practices](#tips--best-practices)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -70,28 +69,31 @@ CREATE CATALOG <nama_catalog> PROPERTIES (
     "type"            = "jdbc",
     "user"            = "<username>",
     "password"        = "<password>",
-    "jdbc_url"        = "jdbc:mysql://<host>:<port>",
-    "driver_url"      = "<path_ke_jdbc_driver.jar>",
-    "driver_class"    = "com.mysql.cj.jdbc.Driver"
+    "jdbc_url"        = "jdbc:mysql://<host>:<port>/<db_name>?<params>",
+    "driver_url"      = "https://<url_ke_jdbc_driver.jar>",
+    "driver_class"    = "com.mysql.jdbc.Driver",
+    "checksum"        = "<checksum_hash>"
 );
 ```
 
 ### Contoh: Membuat Catalog untuk MariaDB / MySQL
 
 ```sql
-CREATE CATALOG mariadb_source PROPERTIES (
+CREATE CATALOG `mariadb_source` PROPERTIES (
     "type"            = "jdbc",
-    "user"            = "root",
-    "password"        = "password_kamu",
-    "jdbc_url"        = "jdbc:mysql://192.168.1.100:3306",
-    "driver_url"      = "mysql-connector-j-8.3.0.jar",
-    "driver_class"    = "com.mysql.cj.jdbc.Driver"
+    "user"            = "jordi_stage",
+    "password"        = "*XXX",
+    "jdbc_url"        = "jdbc:mysql://192.168.2.23:3306/ta15_wlogisticsidb_ap?zeroDateTimeBehavior=convertToNull&yearIsDateType=false&useUnicode=true&rewriteBatchedStatements=true&characterEncoding=utf-8&tinyInt1isBit=false",
+    "driver_url"      = "https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.49/mysql-connector-java-5.1.49.jar",
+    "driver_class"    = "com.mysql.jdbc.Driver",
+    "checksum"        = "b46c5a50b6d707b37bd34e27e0f6cbaf"
 );
 ```
 
 > 💡 **Catatan:**
-> - `jdbc_url` — Sesuaikan IP dan port MariaDB/MySQL kamu.
-> - `driver_url` — File `.jar` JDBC driver. Letakkan di folder `fe/lib/` dan `be/lib/`, atau gunakan path absolut.
+> - `jdbc_url` — Sesuaikan IP, port, database, dan parameter koneksi MariaDB/MySQL kamu.
+> - `driver_url` — Gunakan URL HTTP/HTTPS (misalnya dari repositori Maven) agar Doris dapat secara otomatis mengunduh `.jar` JDBC driver.
+> - `checksum` — (Opsional) MD5 hash untuk memverifikasi integritas file driver `.jar` yang diunduh.
 > - Untuk MariaDB, bisa juga menggunakan `org.mariadb.jdbc.Driver` dengan driver MariaDB Connector/J.
 
 ---
@@ -169,13 +171,10 @@ Setelah catalog dibuat, kamu bisa langsung query data dari sumber eksternal **ta
 -- Format: catalog_name.database_name.table_name
 SELECT * FROM mariadb_source.nama_database.nama_table LIMIT 10;
 
--- Contoh: lihat data users dari database app_db di MariaDB
-SELECT * FROM mariadb_source.app_db.users LIMIT 10;
-
 -- Bisa juga pakai SWITCH dulu
 SWITCH mariadb_source;
-USE app_db;
-SELECT * FROM users LIMIT 10;
+USE nama_database;
+SELECT * FROM nama_table LIMIT 10;
 ```
 
 > ⚠️ **Perhatian:** Query langsung ke catalog eksternal akan membaca data dari sumber aslinya secara real-time. Untuk performa yang lebih baik pada analytics, sebaiknya migrasikan data ke internal Doris.
@@ -205,70 +204,6 @@ AS
 SELECT * FROM mariadb_source.nama_database.nama_table;
 ```
 
-### Verifikasi Hasil Migrasi
-
-```sql
--- Cek jumlah data di sumber
-SELECT COUNT(*) FROM mariadb_source.app_db.users;
-
--- Cek jumlah data di tujuan
-SELECT COUNT(*) FROM internal.app_mirror.users;
-
--- Bandingkan (harus sama)
--- Lihat sample data
-SELECT * FROM internal.app_mirror.users LIMIT 5;
-```
-
----
-
-## Tips & Best Practices
-
-### 1. Gunakan `replication_num = 1` untuk Single Node
-
-Jika hanya menggunakan 1 BE (single node), selalu set:
-
-```sql
-PROPERTIES ("replication_num" = "1")
-```
-
-### 2. Migrasi Tabel Besar Secara Bertahap
-
-Untuk tabel yang sangat besar, pecah migrasi berdasarkan range:
-
-```sql
--- Batch 1: Data lama
-CREATE TABLE internal.app_mirror.logs_batch1
-PROPERTIES ("replication_num" = "1")
-AS
-SELECT * FROM mariadb_source.app_db.logs
-WHERE created_at < '2026-01-01';
-
--- Batch 2: Data baru
--- Gunakan INSERT INTO untuk menambahkan ke tabel yang sudah ada
-INSERT INTO internal.app_mirror.logs_batch1
-SELECT * FROM mariadb_source.app_db.logs
-WHERE created_at >= '2026-01-01';
-```
-
-### 3. Refresh Catalog Metadata
-
-Jika ada perubahan skema di database sumber:
-
-```sql
-REFRESH CATALOG mariadb_source;
-```
-
-### 4. Penamaan Catalog yang Konsisten
-
-Gunakan penamaan yang jelas untuk membedakan sumber data:
-
-| Contoh Nama | Keterangan |
-| ----------- | ---------- |
-| `mariadb_source` | Sumber data utama dari MariaDB |
-| `mysql_legacy` | Database MySQL legacy/lama |
-| `pg_analytics` | PostgreSQL untuk analytics |
-
----
 
 ## Troubleshooting
 
