@@ -205,54 +205,6 @@ AS
 SELECT * FROM mariadb_source.nama_database.nama_table;
 ```
 
-### Contoh Lengkap: Migrasi Beberapa Tabel
-
-```sql
--- Pastikan berada di internal catalog
-SWITCH internal;
-
--- Buat database tujuan
-CREATE DATABASE IF NOT EXISTS app_mirror;
-
--- ✅ Migrasi tabel users
-CREATE TABLE internal.app_mirror.users
-PROPERTIES ("replication_num" = "1")
-AS
-SELECT * FROM mariadb_source.app_db.users;
-
--- ✅ Migrasi tabel orders
-CREATE TABLE internal.app_mirror.orders
-PROPERTIES ("replication_num" = "1")
-AS
-SELECT * FROM mariadb_source.app_db.orders;
-
--- ✅ Migrasi tabel products
-CREATE TABLE internal.app_mirror.products
-PROPERTIES ("replication_num" = "1")
-AS
-SELECT * FROM mariadb_source.app_db.products;
-```
-
-### Migrasi dengan Filter (Partial Migration)
-
-Jika hanya butuh sebagian data:
-
-```sql
--- Migrasi hanya data tahun 2026
-CREATE TABLE internal.app_mirror.orders_2026
-PROPERTIES ("replication_num" = "1")
-AS
-SELECT * FROM mariadb_source.app_db.orders
-WHERE order_date >= '2026-01-01';
-
--- Migrasi dengan kolom tertentu saja
-CREATE TABLE internal.app_mirror.users_summary
-PROPERTIES ("replication_num" = "1")
-AS
-SELECT id, name, email, created_at
-FROM mariadb_source.app_db.users;
-```
-
 ### Verifikasi Hasil Migrasi
 
 ```sql
