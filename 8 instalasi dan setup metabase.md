@@ -11,10 +11,7 @@
 - [Instalasi Metabase](#instalasi-metabase)
   - [1. Prasyarat Sistem (System Dependencies)](#1-prasyarat-sistem-system-dependencies)
   - [2. Download Metabase JAR](#2-download-metabase-jar)
-  - [3. Konfigurasi Database Metadata (PostgreSQL)](#3-konfigurasi-database-metadata-postgresql)
-  - [4. Konfigurasi Environment Variables](#4-konfigurasi-environment-variables)
-  - [5. Menjalankan Metabase](#5-menjalankan-metabase)
-  - [6. Setup sebagai Systemd Service](#6-setup-sebagai-systemd-service)
+  - [3. Menjalankan Metabase](#3-menjalankan-metabase)
 - [Koneksi ke Apache Doris](#koneksi-ke-apache-doris)
 - [Verifikasi Instalasi](#verifikasi-instalasi)
 - [Troubleshooting](#troubleshooting)
@@ -31,7 +28,6 @@
 | **RAM**        | 4 GB (8+ recommended)           |
 | **Disk**       | 20 GB SSD                       |
 | **Java**       | JDK 17 atau JDK 21              |
-| **PostgreSQL** | 14+ (untuk metadata Metabase)   |
 
 ---
 
@@ -68,31 +64,24 @@
 # Update repository
 sudo apt update && sudo apt upgrade -y
 
-# Install Java 21 (JDK)
-sudo apt install -y openjdk-21-jdk
+# Install Java (JDK 17)
+sudo apt install openjdk-17-jdk
 
-# Verifikasi Java
+# Verify Java
 java -version
-# Output: openjdk version "21.x.x"
-
-# Install PostgreSQL (untuk database metadata Metabase)
-sudo apt install -y postgresql postgresql-contrib
-
-# Verifikasi PostgreSQL
-psql --version
+# Output: openjdk version "17.x.x"
 ```
-
 ---
 
 ## 2. Download Metabase JAR
 
 ```bash
 # Buat folder untuk Metabase
-sudo mkdir -p /opt/metabase
-cd /opt/metabase
+mkdir metabase
+cd metabase
 
-# Download Metabase versi terbaru (cek versi terbaru di https://www.metabase.com/downloads)
-sudo wget https://downloads.metabase.com/v0.53.4/metabase.jar
+# Download Metabase versi 4 untuk jdk 17 dan versi 5 untuk jdk 21 (cek versi terbaru di https://www.metabase.com/downloads)
+wget https://downloads.metabase.com/v0.49.13/metabase.jar
 
 # Verifikasi file berhasil diunduh
 ls -lh metabase.jar
@@ -100,66 +89,11 @@ ls -lh metabase.jar
 
 ---
 
-## 3. Konfigurasi Database Metadata (PostgreSQL)
-
-Metabase membutuhkan database untuk menyimpan konfigurasi, dashboard, dan user. Kita gunakan PostgreSQL agar lebih stabil dibanding H2 (default).
-
-```bash
-# Masuk ke PostgreSQL
-sudo -u postgres psql
-
-# Buat user dan database untuk Metabase
-CREATE USER metabase_user WITH PASSWORD 'password_aman_kamu';
-CREATE DATABASE metabase_db OWNER metabase_user;
-GRANT ALL PRIVILEGES ON DATABASE metabase_db TO metabase_user;
-
-# Keluar dari PostgreSQL
-\q
-```
-
----
-
-## 4. Konfigurasi Environment Variables
-
-Buat file konfigurasi environment untuk Metabase:
-
-```bash
-# Buat file environment
-sudo vim /opt/metabase/metabase.env
-```
-
-Isikan variabel berikut:
-
-```properties
-# ============================================
-# Metabase Environment Configuration
-# ============================================
-
-# Konfigurasi Database Metadata (PostgreSQL)
-MB_DB_TYPE=postgres
-MB_DB_DBNAME=metabase_db
-MB_DB_PORT=5432
-MB_DB_USER=metabase_user
-MB_DB_PASS=password_aman_kamu
-MB_DB_HOST=localhost
-
-# Port default Metabase
-MB_JETTY_PORT=3000
-
-# Timezone
-JAVA_TIMEZONE=Asia/Jakarta
-
-# Site URL (sesuaikan dengan IP atau domain server)
-MB_SITE_URL=http://localhost:3000
-```
-
----
-
-## 5. Menjalankan Metabase
+## 3. Menjalankan Metabase
 
 ```bash
 # Jalankan Metabase secara manual (untuk testing)
-cd /opt/metabase
+cd metabase
 java -jar metabase.jar
 ```
 
@@ -169,61 +103,6 @@ Jika berhasil, buka browser dan akses:
 
 **URL: http://localhost:3000**
 
----
-
-## 6. Setup sebagai Systemd Service
-
-Agar Metabase otomatis berjalan saat server restart, kita daftarkan sebagai systemd service.
-
-```bash
-# Buat user khusus untuk Metabase (best practice keamanan)
-sudo useradd -r -s /bin/false metabase
-
-# Set kepemilikan folder
-sudo chown -R metabase:metabase /opt/metabase
-
-# Buat file service
-sudo vim /etc/systemd/system/metabase.service
-```
-
-Isikan konfigurasi service berikut:
-
-```ini
-[Unit]
-Description=Metabase BI Server
-After=network.target postgresql.service
-
-[Service]
-User=metabase
-Group=metabase
-WorkingDirectory=/opt/metabase
-EnvironmentFile=/opt/metabase/metabase.env
-ExecStart=/usr/bin/java -jar /opt/metabase/metabase.jar
-Restart=always
-RestartSec=5
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=metabase
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Aktifkan dan jalankan service:
-
-```bash
-# Reload systemd
-sudo systemctl daemon-reload
-
-# Enable agar otomatis start saat boot
-sudo systemctl enable metabase
-
-# Start service
-sudo systemctl start metabase
-
-# Cek status
-sudo systemctl status metabase
-```
 
 ---
 
@@ -276,7 +155,7 @@ ss -tlnp | grep 3000
 | Problem                               | Solusi                                                                                          |
 |---------------------------------------|-------------------------------------------------------------------------------------------------|
 | `Port 3000 already in use`            | Ganti port di `metabase.env`: `MB_JETTY_PORT=3001`                                             |
-| `Cannot connect to database`          | Pastikan PostgreSQL berjalan: `sudo systemctl status postgresql`                                |
+| `Cannot connect to database`          | Pastikan Doris berjalan: `jps`                                |
 | `Java heap space / OutOfMemory`       | Tambahkan opsi JVM: `ExecStart=/usr/bin/java -Xmx2g -jar /opt/metabase/metabase.jar`           |
 | `Metabase not starting after restart` | Cek log: `sudo journalctl -u metabase -n 100 --no-pager`                                       |
 | `Cannot connect to Doris`             | Pastikan FE Doris berjalan dan port `9030` tidak diblokir firewall                              |
@@ -299,10 +178,11 @@ java -version
 
 ---
 
-## 📚 Referensi
+## Referensi
 
 - [Metabase Official Documentation](https://www.metabase.com/docs/latest/)
 - [Metabase GitHub](https://github.com/metabase/metabase)
-- [Metabase Download Page](https://www.metabase.com/downloads)
+- [Metabase Download Page](https://www.metabase.com/docs/latest/installation-and-operation/running-the-metabase-jar-file)
+- [Tutorial Menggunakan Metabase](https://medium.com/javanlabs/visualisasi-data-menggunakan-metabase-7a2b739e6be5)
 
 ---
