@@ -153,7 +153,7 @@ superset init
 source ~/superset_project/venv/bin/activate
 
 # Jalankan Superset
-superset run -p 8088 --with-threads --reload --debugger
+superset run -h 0.0.0.0 -p 8088 --with-threads --reload --debugger
 ```
 
 Buka browser dan akses:
