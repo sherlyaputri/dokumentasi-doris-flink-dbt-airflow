@@ -13,7 +13,6 @@
   - [2. Download Metabase JAR](#2-download-metabase-jar)
   - [3. Menjalankan Metabase](#3-menjalankan-metabase)
 - [Koneksi ke Apache Doris](#koneksi-ke-apache-doris)
-- [Verifikasi Instalasi](#verifikasi-instalasi)
 - [Troubleshooting](#troubleshooting)
 - [Referensi](#referensi)
 
@@ -92,17 +91,37 @@ ls -lh metabase.jar
 ## 3. Menjalankan Metabase
 
 ```bash
+# (Opsional) Set port Metabase jika port default 3000 sudah digunakan service lain
+# Gunakan perintah ini HANYA jika address yang sama sudah memakai port 3000
+export MB_JETTY_PORT=8080
+
 # Jalankan Metabase secara manual (untuk testing)
 cd metabase
 java -jar metabase.jar
 ```
 
+> 💡 **Kapan perlu `export MB_JETTY_PORT`?**
+> Perintah ini **opsional** — hanya diperlukan jika kamu menjalankan Metabase di address yang sama dengan service lain yang sudah memakai port `3000` (misalnya Node.js, Grafana, dsb.). Jika port `3000` masih kosong, kamu bisa langsung menjalankan `java -jar metabase.jar` tanpa export port.
+
 > ⚠️ **PERHATIAN**: Tunggu beberapa menit hingga muncul log `Metabase Initialization COMPLETE`. Proses pertama kali akan membutuhkan waktu lebih lama karena inisialisasi database.
 
 Jika berhasil, buka browser dan akses:
 
-**URL: http://localhost:3000**
+- **Default (tanpa export port):** `http://localhost:3000`
+- **Jika menggunakan `MB_JETTY_PORT=8080`:** `http://localhost:8080`
 
+### ⚠️ Penting: Update URL Website di Pengaturan Admin
+
+Jika kamu mengubah port Metabase (misalnya ke `8080`), **wajib** sesuaikan juga **URL Website** di pengaturan admin Metabase:
+
+1. Login ke Metabase
+2. Klik ikon **⚙️ Settings** (pojok kanan atas) → **Admin settings**
+3. Pilih menu **Umum** (General)
+4. Pada field **URL Website** (Site URL), ubah menjadi: `http://localhost:8080` (sesuaikan dengan port yang kamu gunakan)
+5. Klik **Save**
+
+> ❗ **Mengapa harus diubah?**
+> Metabase menggunakan **URL Website** sebagai base URL saat membuat link visualisasi data, embed, dan share dashboard. Jika URL ini masih mengarah ke port lama (`3000`) padahal Metabase berjalan di port `8080`, maka link yang dibagikan akan **error / tidak bisa diakses**.
 
 ---
 
@@ -112,7 +131,7 @@ Setelah Metabase berjalan, hubungkan ke Apache Doris sebagai sumber data.
 
 ### Langkah Koneksi:
 
-1. Buka Metabase di browser: `http://localhost:3000`
+1. Buka Metabase di browser (sesuaikan port yang digunakan)
 2. Login dengan akun admin
 3. Klik ikon **⚙️ Settings** (pojok kanan atas) → **Admin settings**
 4. Pilih menu **Databases** → **Add database**
@@ -133,48 +152,17 @@ Isi form koneksi:
 
 ---
 
-## Verifikasi Instalasi
-
-```bash
-# Cek status service
-sudo systemctl status metabase
-
-# Lihat log secara real-time
-sudo journalctl -u metabase -f
-
-# Cek apakah port 3000 aktif
-ss -tlnp | grep 3000
-```
-
----
-
 ## Troubleshooting
 
 ### Common Issues
 
 | Problem                               | Solusi                                                                                          |
 |---------------------------------------|-------------------------------------------------------------------------------------------------|
-| `Port 3000 already in use`            | Ganti port di `metabase.env`: `MB_JETTY_PORT=3001`                                             |
-| `Cannot connect to database`          | Pastikan Doris berjalan: `jps`                                |
-| `Java heap space / OutOfMemory`       | Tambahkan opsi JVM: `ExecStart=/usr/bin/java -Xmx2g -jar /opt/metabase/metabase.jar`           |
+| `Port sudah digunakan`                | Ganti port: `export MB_JETTY_PORT=8081` sebelum menjalankan `java -jar metabase.jar`           |
+| `Cannot connect to database`          | Pastikan Doris berjalan: `jps`                                                                  |
+| `Java heap space / OutOfMemory`       | Tambahkan opsi JVM: `java -Xmx2g -jar metabase.jar`                                            |
 | `Metabase not starting after restart` | Cek log: `sudo journalctl -u metabase -n 100 --no-pager`                                       |
 | `Cannot connect to Doris`             | Pastikan FE Doris berjalan dan port `9030` tidak diblokir firewall                              |
-
-### Useful Commands
-
-```bash
-# Restart Metabase
-sudo systemctl restart metabase
-
-# Stop Metabase
-sudo systemctl stop metabase
-
-# Lihat log
-sudo journalctl -u metabase -n 100 --no-pager
-
-# Cek versi Java yang digunakan
-java -version
-```
 
 ---
 
